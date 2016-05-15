@@ -122,6 +122,45 @@ way_points <- function(
     }
     
     way_points_sp <- SpatialPoints(way_points, proj4string = ply_crs)
+    
     way_points_sp
 }
 
+#### next function is added by wei and hiro
+require(geosphere)
+heading.distance.direction <- function(wp) {
+  r <- 6378.137 # radius of earth
+  lat <- wp$latitude
+  long <- wp$longitude
+  theta <- rep(NA, length(lat))
+  distance <- rep(NA, length(lat))
+  for(i in 1:(length(lat) - 1)) {
+    y <- cos(lat[i + 1]) * sin(long[i + 1] - long[i])
+    x <- cos(lat[i]) * sin(lat[i + 1]) - sin(lat[i]) * cos(lat[i + 1]) * cos(long[i + 1] - long[i])
+    theta[i] <- atan2(y, x)
+    if(theta[i] < 0)
+      theta[i] = theta[i] + 2 * pi
+    
+    distance[i] <- distGeo(c(long[i], lat[i]), c(long[i + 1], lat[i + 1]))
+  }
+  theta[length(lat)] <- theta[length(lat) - 1]
+  distance[length(lat)] <- 0
+  list(distance = distance, direction = 360 - theta * 180 / pi)
+}
+
+# calculation
+calc.settings <- function(
+    altitude, interval, 
+    coverR_x, coverR_y,
+    imgsensor_x, imgsensor_y, focus_length) {
+  range_x <- (altitude * imgsensor_x) / focus_length
+  range_y <- (altitude * imgsensor_y) / focus_length
+  range_d <- (altitude * sqrt(imgsensor_x^2 + imgsensor_y^2)) / focus_length
+  
+  range_moved_y <- coverR_y * range_y
+  speed_drone <- (range_y - range_moved_y) / interval
+  speed_drone_km_h <- speed_drone / (1000/3600)
+  turn_dis <- range_x - range_x * coverR_x
+  
+  list(speed.drone = speed_drone, speed.drone.km.h = speed_drone_km_h, turn.dis = turn_dis)
+}

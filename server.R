@@ -10,7 +10,7 @@ library(leaflet)
 library(leafletplugins)
 source('global.R')
 shinyServer(function(input, output, session) {
-    
+
     # Observe for change camera
     observe({
         req(input$i_camera_list)
@@ -29,7 +29,33 @@ shinyServer(function(input, output, session) {
             session
             , 'i_focus_length'
             , value = sel_camera$focus_length)
- })
+        img_sensor_x <- input$i_img_sensor_x
+        img_sensor_y <- input$i_img_sensor_y
+        if(input$i_camera_angle == 'Portrait') {
+            img_sensor_x <- input$i_img_sensor_y
+            img_sensor_y <- input$i_img_sensor_x
+        }
+        res <- calc.settings(input$i_flight_height, 
+                      input$i_shutter_interval,
+                      input$i_overlap_x / 100,
+                      input$i_overlap_y / 100,
+                      input$i_img_sensor_x,
+                      input$i_img_sensor_y,
+                      input$i_focus_length)
+        #print(res)
+        updateNumericInput(
+            session
+            , 'i_grid_offset'
+            , value = res$turn.dis)
+        updateSliderInput(
+          session
+          , 'i_flight_speed'
+          , value = floor(res$speed.drone.km.h))
+        updateNumericInput(
+          session
+          , 'o_flight_speed'
+          , value = res$speed.drone.km.h)
+    })
     
     output$o_map <- renderLeaflet({
         
@@ -75,7 +101,7 @@ shinyServer(function(input, output, session) {
         # save(list = ls(), file = 'tmp.RData')
         
         wp <- wp <- way_points(ply, offset = offset)
-        
+
         wp <- spTransform(wp,  CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'))
         
         wp
@@ -95,12 +121,30 @@ shinyServer(function(input, output, session) {
             wp <- as.data.frame(wp)
             names(wp) <- c('longitude', 'latitude')
             
+            # add the starting point
+            wp <- rbind(wp, wp[1,])
+            
+            # calculate slope (added by hw)
+            res <- heading.distance.direction(wp)
+            distance <- res$distance
+            direction <- res$direction
+            if(input$i_heading_direction == 1)
+              direction <- direction[1]
+            if(input$i_camera_angle == 'Portrait')
+              direction <- direction - 90
+            direction[direction < 0] <- direction[direction < 0] + 360
+            
+            speed <- rep(input$o_flight_speed, length(distance))
+            speed[length(speed)] <- 0
+            
             wp <- wp %>% 
                 select(latitude, longitude) %>% 
                 mutate(`altitude(m)` = altitude,
-                       `heading(deg)` = 0,
+                       `heading(deg)` = direction,
                        `curvesize(m)` = 0.2,
-                       `rotationdir` = 0)
+                       `rotationdir` = 0,
+                       `distance` = distance,
+                       `speed` = speed)
             write.csv(wp, file = file, row.names = FALSE)
         }
     )
