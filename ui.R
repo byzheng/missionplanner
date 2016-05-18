@@ -2,6 +2,10 @@
 # * Created:   09:24 PM Saturday, 26 March 2016
 # * Copyright: AS IS
 
+ui_help <- function() {
+    includeMarkdown("help.md")
+}
+
 ui_configuration <- function() {
     tabsetPanel(
         tabPanel(
@@ -119,7 +123,8 @@ sidebar <- dashboardSidebar(
         , menuItem('Configuration', tabName = 'm_configuration')
         , menuItem('Field', tabName = 'm_field')
         , menuItem('Table', tabName = 'm_table')
-        , menuItem('Summary', tabName = 'm_summary'))
+        , menuItem('Summary', tabName = 'm_summary')
+        , menuItem('Help', tabName = 'm_help'))
 )
 
 body <- dashboardBody(
@@ -158,6 +163,10 @@ body <- dashboardBody(
             , textOutput('o_flight_duration_caution')
             , textInput('i_filename', 'Filename without extension', 'litchi')
             , downloadButton('o_download_wp', 'Download waypoints')
+        )
+        , tabItem(
+            tabName = 'm_help',
+            ui_help()
         )
         )
          

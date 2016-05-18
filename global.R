@@ -2,6 +2,7 @@
 # * Created:   08:52 PM Wednesday, 20 April 2016
 # * Copyright: AS IS
 
+library(geosphere)
 cameras <- read.csv('camera.csv', as.is = TRUE)
 
 utm_zone <- function(lng, lat) {
