@@ -10,7 +10,7 @@ library(leaflet)
 library(leafletplugins)
 source('global.R')
 shinyServer(function(input, output, session) {
-
+  
     # Observe for change camera
     observe({
         req(input$i_camera_list)
@@ -47,19 +47,17 @@ shinyServer(function(input, output, session) {
             session
             , 'i_grid_offset'
             , value = res$turn.dis)
-        updateSliderInput(
-          session
-          , 'i_flight_speed'
-          , value = floor(res$speed.drone.km.h))
         updateNumericInput(
           session
-          , 'o_flight_speed'
+          , 'i_flight_speed'
           , value = res$speed.drone.km.h)
+        #output$o_flight_speed <- renderText(res$speed.drone.km.h)
+        if(res$speed.drone > input$i_maximum_flight_speed)
+            output$o_flight_speed_caution <- renderText("Caution: over speed!")
     })
     
     output$o_map <- renderLeaflet({
-        
-        
+
         map <- leaflet() %>%
             addTiles(group = 'OSM') %>% 
             addProviderTiles(
@@ -100,11 +98,62 @@ shinyServer(function(input, output, session) {
         req(length(ply$features) > 0)
         # save(list = ls(), file = 'tmp.RData')
         
-        wp <- wp <- way_points(ply, offset = offset)
+        wp <- way_points(ply, offset = offset)
 
         wp <- spTransform(wp,  CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'))
         
         wp
+    })
+    
+    # Reactive for output data
+    output_data <- reactive({
+      req(input$i_flight_height)
+      altitude <- input$i_flight_height
+      wp <- r_way_points()
+      wp <- as.data.frame(wp)
+      names(wp) <- c('longitude', 'latitude')
+      
+      # add the starting point
+      #wp <- rbind(wp, wp[1,])
+      
+      # calculate slope (added by hw)
+      res <- heading.distance.direction(wp)
+      distance <- res$distance
+      direction <- res$direction
+      if(input$i_heading_direction == 1)
+        direction <- direction[1]
+      if(input$i_camera_angle == 'Portrait')
+        direction <- direction - 90
+      direction[direction < 0] <- direction[direction < 0] + 360
+      
+      speed <- rep(input$i_flight_speed, length(distance))
+      #speed[length(speed)] <- 0
+      
+
+      # update information
+      total.distance <- sum(distance)
+      flight.duration <- total.distance / (input$i_flight_speed * 1000 / 60)
+      output$o_flight_speed <- renderText(input$i_flight_speed)
+      output$o_flight_distance <- renderText(total.distance)
+      output$o_flight_duration <- renderText(flight.duration)
+      if(flight.duration > input$i_battery_life * 0.7)
+          output$o_flight_duration_caution <- renderText("Caution: over duration!")
+      
+      wp <- wp %>% 
+        select(latitude, longitude) %>% 
+        mutate(`altitude(m)` = altitude,
+               `heading(deg)` = direction,
+               `curvesize(m)` = 0.2,
+               `rotationdir` = 0,
+               `distance` = distance,
+               `speed` = speed)
+      
+      wp
+    })
+    
+    # draw table
+    output$grouping <- renderTable({
+      output_data()
     })
     
     
@@ -114,40 +163,10 @@ shinyServer(function(input, output, session) {
             paste0(input$i_filename,'.csv')
         },
         content = function(file) {
-            req(input$i_flight_height)
-            altitude <- input$i_flight_height
-            wp <- r_way_points()
-            # save(wp, file = 'tmp.RData')
-            wp <- as.data.frame(wp)
-            names(wp) <- c('longitude', 'latitude')
-            
-            # add the starting point
-            wp <- rbind(wp, wp[1,])
-            
-            # calculate slope (added by hw)
-            res <- heading.distance.direction(wp)
-            distance <- res$distance
-            direction <- res$direction
-            if(input$i_heading_direction == 1)
-              direction <- direction[1]
-            if(input$i_camera_angle == 'Portrait')
-              direction <- direction - 90
-            direction[direction < 0] <- direction[direction < 0] + 360
-            
-            speed <- rep(input$o_flight_speed, length(distance))
-            speed[length(speed)] <- 0
-            
-            wp <- wp %>% 
-                select(latitude, longitude) %>% 
-                mutate(`altitude(m)` = altitude,
-                       `heading(deg)` = direction,
-                       `curvesize(m)` = 0.2,
-                       `rotationdir` = 0,
-                       `distance` = distance,
-                       `speed` = speed)
-            write.csv(wp, file = file, row.names = FALSE)
+            write.csv(output_data(), file = file, row.names = FALSE)
         }
     )
+    
     # Draw a polygon 
     observe({
         wp <- r_way_points()
@@ -168,13 +187,10 @@ shinyServer(function(input, output, session) {
             clearGroup('Flight')
     })
     
-    
     observe({
         req(input$o_map_draw_deleting)
         leafletProxy('o_map') %>%
             clearPopups() %>%
             clearGroup('Flight')
     })
-    
-    
 })

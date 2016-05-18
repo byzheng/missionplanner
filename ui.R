@@ -11,13 +11,13 @@ ui_configuration <- function() {
                 , label = 'Flight height (m)' 
                 , value = 20, min = 5, max = 200, step = 1)
             , sliderInput(
-                inputId = 'i_flight_speed'
-                , label = 'Flight speed (km/h)'
-                , value = 5, min = 1, max = 50, step = 1)
+                inputId = 'i_maximum_flight_speed'
+                , label = 'Maximum flight speed (m/s)'
+                , value = 10, min = 1, max = 30, step = 1)
             , sliderInput(
                 inputId = 'i_battery_life'
                 , label = 'Battery life (min)'
-                , value = 15, min = 5, max = 60 
+                , value = 15, min = 5, max = 60, step = 1 
             )
             , radioButtons(
               inputId = 'i_heading_direction'
@@ -33,6 +33,14 @@ ui_configuration <- function() {
                 , min = 1
                 , max = 100
                 #, step = 1
+            )
+            , numericInput(
+              inputId = 'i_flight_speed'
+              , label = 'Flight speed (km/h)'
+              , value = 10
+              , min = 1
+              , max = 30
+              #, step = 1
             )
         )
         , tabPanel(
@@ -104,11 +112,13 @@ source('global.R')
 header <- dashboardHeader(
     title = 'Mission Planner for UAV'
     , titleWidth = 300)
+
 sidebar <- dashboardSidebar(
     width = 300
     , sidebarMenu(id = 'menu_tabs'
         , menuItem('Configuration', tabName = 'm_configuration')
         , menuItem('Field', tabName = 'm_field')
+        , menuItem('Table', tabName = 'm_table')
         , menuItem('Summary', tabName = 'm_summary'))
 )
 
@@ -133,11 +143,19 @@ body <- dashboardBody(
             , ui_configuration()
         )
         , tabItem(
+            tabName = 'm_table'
+            , tableOutput("grouping")
+        )
+        , tabItem(
             tabName = 'm_summary'
-            , numericInput(
-              inputId = 'o_flight_speed'
-              , label = 'Flight speed (km/h)'
-              , value = 10)
+            , h5('Flight distance (m)')
+            , textOutput('o_flight_distance')
+            , h5('Flight speed (km/h)')
+            , textOutput('o_flight_speed')
+            , textOutput('o_flight_speed_caution')
+            , h5('Flight duration (min)')
+            , textOutput('o_flight_duration')
+            , textOutput('o_flight_duration_caution')
             , textInput('i_filename', 'Filename without extension', 'litchi')
             , downloadButton('o_download_wp', 'Download waypoints')
         )

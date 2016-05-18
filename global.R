@@ -129,23 +129,25 @@ way_points <- function(
 #### next function is added by wei and hiro
 require(geosphere)
 heading.distance.direction <- function(wp) {
-  r <- 6378.137 # radius of earth
+  #r <- 6378.137 # radius of earth
   lat <- wp$latitude
+  lat.rad <- lat / 180 * pi
   long <- wp$longitude
+  long.rad <- long / 180 * pi
   theta <- rep(NA, length(lat))
   distance <- rep(NA, length(lat))
   for(i in 1:(length(lat) - 1)) {
-    y <- cos(lat[i + 1]) * sin(long[i + 1] - long[i])
-    x <- cos(lat[i]) * sin(lat[i + 1]) - sin(lat[i]) * cos(lat[i + 1]) * cos(long[i + 1] - long[i])
+    y <- cos(lat.rad[i + 1]) * sin(long.rad[i + 1] - long.rad[i])
+    x <- cos(lat.rad[i]) * sin(lat.rad[i + 1]) - sin(lat.rad[i]) * cos(lat.rad[i + 1]) * cos(long.rad[i + 1] - long.rad[i])
     theta[i] <- atan2(y, x)
     if(theta[i] < 0)
       theta[i] = theta[i] + 2 * pi
-    
+    #theta[i] <- 90 - atan2(sin(long.rad[i + 1] - long.rad[i]), cos(lat.rad[i]) * tan(lat.rad[i + 1]) - sin(lat.rad[i]) * cos(long.rad[i + 1] - long.rad[i])) * 180
     distance[i] <- distGeo(c(long[i], lat[i]), c(long[i + 1], lat[i + 1]))
   }
   theta[length(lat)] <- theta[length(lat) - 1]
   distance[length(lat)] <- 0
-  list(distance = distance, direction = 360 - theta * 180 / pi)
+  list(distance = distance, direction = theta / pi * 180)
 }
 
 # calculation
