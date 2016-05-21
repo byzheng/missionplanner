@@ -1,0 +1,31 @@
+language: r
+
+
+sudo: false
+
+notifications:
+  email:
+    recipients:
+      - zheng.bangyou@gmail.com
+    on_success: always
+    on_failure: always
+
+install:
+   - Rscript -e "if (!require('devtools')) install.packages('devtools')"
+   - Rscript -e "if (!require('geosphere')) install.packages('geosphere')"
+   - Rscript -e "if (!require('sp')) install.packages('sp')"
+   - Rscript -e "if (!require('shiny')) install.packages('shiny')"
+   - Rscript -e "if (!require('shinydashboard')) install.packages('shinydashboard')"
+   - Rscript -e "if (!require('leaflet')) devtools::install_github('byzheng/leaflet')"
+   - Rscript -e "if (!require('leafletplugins')) devtools::install_github('byzheng/leafletplugins')"
+   - Rscript -e "if (!require('dplyr')) install.packages('dplyr')"
+   - Rscript -e "if (!require('tidyr')) install.packages('tidyr')"
+   - Rscript -e "if (!require('readr')) install.packages('readr')"
+before_script:
+  - chmod +x ./_build.sh
+
+script:
+  - ./_build.sh
+
+cache:
+  packages: yes
