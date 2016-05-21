@@ -5,3 +5,4 @@ secret <- args[[2]]
 print(token)
 print(secret)
 rsconnect::setAccountInfo(name='bzheng', token=token, secret=secret)
+rsconnect::deployApp(quiet=TRUE)
