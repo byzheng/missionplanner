@@ -13,6 +13,7 @@ notifications:
 install:
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
    - Rscript -e "if (!require('geosphere')) install.packages('geosphere')"
+   - Rscript -e "if (!require('rsconnect')) install.packages('rsconnect')"
    - Rscript -e "if (!require('sp')) install.packages('sp')"
    - Rscript -e "if (!require('shiny')) install.packages('shiny')"
    - Rscript -e "if (!require('shinydashboard')) install.packages('shinydashboard')"
