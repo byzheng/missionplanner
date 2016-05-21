@@ -22,6 +22,7 @@ install:
    - Rscript -e "if (!require('dplyr')) install.packages('dplyr')"
    - Rscript -e "if (!require('tidyr')) install.packages('tidyr')"
    - Rscript -e "if (!require('readr')) install.packages('readr')"
+   - Rscript -e "if (!require('knitr')) install.packages('knitr')"
 
 script:
   - Rscript _build.R ${SHINY_TOKEN} ${SHINY_SECRET}
