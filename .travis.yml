@@ -23,6 +23,9 @@ install:
    - Rscript -e "if (!require('tidyr')) install.packages('tidyr')"
    - Rscript -e "if (!require('readr')) install.packages('readr')"
    - Rscript -e "if (!require('knitr')) install.packages('knitr')"
+   - Rscript -e "if (!require('caTools')) install.packages('caTools')"
+   - Rscript -e "if (!require('rgeos')) install.packages('rgeos')"
+   - Rscript -e "if (!require('rmarkdown')) install.packages('rmarkdown')"
 
 script:
   - Rscript _build.R ${SHINY_TOKEN} ${SHINY_SECRET}
