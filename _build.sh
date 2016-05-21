@@ -6,4 +6,4 @@ git clone --branch=master \
   https://github.com/${TRAVIS_REPO_SLUG}.git \
   shiny
 cd shiny
-Rscript -e "rsconnect::deployApp(quite=TRUE)"
+Rscript -e "rsconnect::deployApp(quiet=TRUE)"
