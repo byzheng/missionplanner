@@ -24,7 +24,7 @@ install:
    - Rscript -e "if (!require('readr')) install.packages('readr')"
 
 script:
-  - Rscript _build.R ${SHINY_TOKEN}$ ${SHINY_SECRET}$
+  - Rscript _build.R ${SHINY_TOKEN} ${SHINY_SECRET}
 
 cache:
   packages: yes
