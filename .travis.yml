@@ -9,13 +9,11 @@ notifications:
       - zheng.bangyou@gmail.com
     on_success: always
     on_failure: always
-addons:
-  apt:
-    packages:
-    - libgdal-dev
-    - libproj-dev
+
 
 install:
+   - apt-get install -y libgdal-dev
+   - apt-get install -y libproj-dev
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
    - Rscript -e "if (!require('geosphere')) install.packages('geosphere')"
    - Rscript -e "if (!require('rsconnect')) install.packages('rsconnect')"
