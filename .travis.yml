@@ -10,11 +10,18 @@ notifications:
     on_success: always
     on_failure: always
 
+addons:
+  apt:
+    sources:
+    - r-packages-precise
+    packages:
+    - r-base-dev
+    - r-recommended
+    - libgdal1-dev
+    - libproj-dev
 
 install:
    - apt-get update
-   - apt-get install -y libgdal-dev
-   - apt-get install -y libproj-dev
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
    - Rscript -e "if (!require('geosphere')) install.packages('geosphere')"
    - Rscript -e "if (!require('rsconnect')) install.packages('rsconnect')"
