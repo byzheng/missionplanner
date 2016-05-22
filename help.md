@@ -31,6 +31,6 @@
 
 1. Go to [Litchi Mission Hub](https://flylitchi.com/hub).
 2. Go to `MISSIONS` > `import` to import your downloaded waypoint file(.csv file). when imported, waypoints and flight routes will be displayed on the map.
-3. GO to `MISSIONS` > `save` to save the flight mission and the flight mission will be synced to your mobile device (need a Litchi account).
+3. Go to `MISSIONS` > `save` to save the flight mission and the flight mission will be synced to your mobile device (need a Litchi account).
 4. Open Litchi app in your mobile device, and select waypoint mode to load your mission (need a Litchi account).
 5. Enjoy!
