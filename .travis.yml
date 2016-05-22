@@ -12,6 +12,7 @@ notifications:
 
 
 install:
+   - apt-get update
    - apt-get install -y libgdal-dev
    - apt-get install -y libproj-dev
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
