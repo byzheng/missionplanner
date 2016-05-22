@@ -18,6 +18,7 @@ addons:
     packages:
     - r-base-dev
     - r-recommended
+    - libgdal-dev
     - libgdal1-dev
     
     
