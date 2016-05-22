@@ -9,6 +9,11 @@ notifications:
       - zheng.bangyou@gmail.com
     on_success: always
     on_failure: always
+addons:
+  apt:
+    packages:
+    - libgdal-dev
+    - libproj-dev
 
 install:
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
@@ -25,6 +30,7 @@ install:
    - Rscript -e "if (!require('knitr')) install.packages('knitr')"
    - Rscript -e "if (!require('caTools')) install.packages('caTools')"
    - Rscript -e "if (!require('rgeos')) install.packages('rgeos')"
+   - Rscript -e "if (!require('rgeos')) install.packages('rgdal')"
    - Rscript -e "if (!require('rmarkdown')) install.packages('rmarkdown')"
 
 script:
