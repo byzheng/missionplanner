@@ -2,6 +2,7 @@ language: r
 
 
 sudo: false
+dist: trusty
 
 notifications:
   email:
