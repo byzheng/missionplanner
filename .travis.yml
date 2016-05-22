@@ -17,6 +17,8 @@ addons:
     packages:
     - r-base-dev
     - r-recommended
+    - libgdal1-dev
+    
     
 install:
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
