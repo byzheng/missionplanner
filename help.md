@@ -8,7 +8,7 @@
 
 # How to use
 
-##Generate waypoints
+##<font size=4>Generate waypoints</font>
 
 1. Go to [Mission Planner for UAV](https://croptsrv-cdc.it.csiro.au/shiny/users/zhe00a/missionplanner/)
 
