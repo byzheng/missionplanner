@@ -8,7 +8,7 @@
 
 # How to use
 
-<font size=8>**Generate waypoints**</font>
+##Generate waypoints
 
 1. Go to [Mission Planner for UAV](https://croptsrv-cdc.it.csiro.au/shiny/users/zhe00a/missionplanner/)
 
@@ -27,7 +27,7 @@
   Shows Flight distance, Flight speed and Flight duration of the flight mission. 
   Click Download waypoints buttom to download waypoint imformation to your device as .csv file.
 
-<font size=8>**Generate flight mission**</font>
+###Generate flight mission##
 
 1. Go to [Litchi Mission Hub](https://flylitchi.com/hub)
 2. Go to MISSIONS > import to import your downloaded waypoint file(.csv file). when imported, waypoints and flight route will be displayed on the map.
