@@ -8,12 +8,12 @@
 
 # How to use
 
-<font size=4>**Generate waypoints**</font>
+<font size=8>**Generate waypoints**</font>
 
 1. Go to [Mission Planner for UAV](https://croptsrv-cdc.it.csiro.au/shiny/users/zhe00a/missionplanner/)
 
 2. **Configuration**
-  - UAV tab: sets `Flight height`, `Maximum flight speed`, `Battery life` and `Heading direction` for UAV. NOTE that `Shift in grid` and `Flight speed` can be automatically calculated by the app based on `Shutter interval` in Canera tab, `Overlap `X and `Overlap Y` in Field tab, so there is no need to set these pareameters manually.
+  - UAV tab: sets `Flight height`, `Maximum flight speed`, `Battery life` and `Heading direction` for UAV. NOTE that `Shift in grid` and `Flight speed` can be automatically calculated by the app based on `Shutter interval` in *Camera* tab, `Overlap `X and `Overlap Y` in *Field* tab, so there is no need to set these pareameters manually.
   - Camera tab: sets `Camera type`, `Shutter interval`, `Camera Orientation` and `Camera angle`. NOTE that `Image Sensor X`, `Image Sensor Y` and `Focus Lengt`h will be changed automatically acoording to `Camera type`.
   - Field tab: sets `Flight mode`, `Overlap X` and `Overlap Y`.
 
@@ -27,7 +27,7 @@
   Shows Flight distance, Flight speed and Flight duration of the flight mission. 
   Click Download waypoints buttom to download waypoint imformation to your device as .csv file.
 
-<font size=4>**Generate flight mission**</font>
+<font size=8>**Generate flight mission**</font>
 
 1. Go to [Litchi Mission Hub](https://flylitchi.com/hub)
 2. Go to MISSIONS > import to import your downloaded waypoint file(.csv file). when imported, waypoints and flight route will be displayed on the map.
