@@ -18,14 +18,14 @@
   - *Field* tab: sets `Flight mode`, `Overlap X` and `Overlap Y`. `Overlap X` means forward overlap (image height) and `Overlap Y` means side overlap (image width).
 
 3. **Field** 
- - Click `draw a polygon` buttom and select the region you want to cover on the map, also you can use `edit layers` buttom and `delete layers` buttion to modify your flight region. When finished with selecting region, clik `finish` to update and display flight route on the map.
+ - Click `draw a polygon` button and select the region you want to cover on the map, also you can use `edit layers` button and `delete layers` button to modify your flight region. When finished with selecting region, clik `finish` to update and display flight route on the map.
 
 4. **Table**
  - Shows latitude, longitude, altitude, heading, curvesize and other paramters of each waypoint.
 
 5. **Summary**
- - Shows Flight distance, Flight speed and Flight duration of the flight mission. 
- - Click `Download waypoints` buttom to download waypoint imformation to your device as .csv file.
+ - Shows `Flight distance`, `Flight speed` and `Flight duration` of the flight mission. 
+ - Click `Download waypoints` button to download waypoint imformation to your device as .csv file.
 
 ###Generate flight mission##
 
