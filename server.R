@@ -6,6 +6,7 @@
 
 library(shiny)
 library(dplyr)
+library(rgdal)
 library(leaflet)
 library(leafletplugins)
 source('global.R')

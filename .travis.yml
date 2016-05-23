@@ -1,7 +1,9 @@
 language: r
 
 
-sudo: false
+
+sudo: required
+
 dist: trusty
 
 notifications:
@@ -18,13 +20,8 @@ addons:
     packages:
     - r-base-dev
     - r-recommended
-    - libhdf5-7
-    - libhdf5-dev
-    - libhdf5-serial-dev
-    - libgdal-dev
-    - libgdal1-dev
-    
 install:
+   - sudo apt-get install libgdal1-dev
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
    - Rscript -e "if (!require('geosphere')) install.packages('geosphere')"
    - Rscript -e "if (!require('rsconnect')) install.packages('rsconnect')"
