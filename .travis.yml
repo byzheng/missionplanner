@@ -18,11 +18,11 @@ addons:
     packages:
     - r-base-dev
     - r-recommended
-    - libgdal-dev
-    - libgdal1-dev
-    
     
 install:
+   - apt-get install aptitude
+   - aptitude install libgdal-dev
+   - aptitude install libgdal1-dev
    - Rscript -e "if (!require('devtools')) install.packages('devtools')"
    - Rscript -e "if (!require('geosphere')) install.packages('geosphere')"
    - Rscript -e "if (!require('rsconnect')) install.packages('rsconnect')"
