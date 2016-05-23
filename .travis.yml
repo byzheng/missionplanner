@@ -36,7 +36,7 @@ install:
    - Rscript -e "if (!require('knitr')) install.packages('knitr')"
    - Rscript -e "if (!require('caTools')) install.packages('caTools')"
    - Rscript -e "if (!require('rgeos')) install.packages('rgeos')"
-   - Rscript -e "if (!require('rgeos')) install.packages('rgdal')"
+   - Rscript -e "if (!require('rgdal')) install.packages('rgdal')"
    - Rscript -e "if (!require('rmarkdown')) install.packages('rmarkdown')"
 
 script:
