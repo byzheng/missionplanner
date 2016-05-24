@@ -3,7 +3,7 @@
 # * Copyright: AS IS
 
 
-
+options(digits = 10)
 library(shiny)
 library(dplyr)
 library(rgdal)
@@ -137,51 +137,15 @@ shinyServer(function(input, output, session) {
       output$o_flight_speed <- renderText(input$i_flight_speed)
       output$o_flight_distance <- renderText(total.distance)
       output$o_flight_duration <- renderText(flight.duration)
-      if(flight.duration > input$i_battery_life * 0.7)
+      if (flight.duration > input$i_battery_life * 0.7)
           output$o_flight_duration_caution <- renderText("Caution: over duration!")
+      wp %>% 
+          select(latitude, longitude) %>% 
+          mutate(altitude = altitude,
+                 heading = direction,
+                 distance = distance,
+                 speed = speed)
       
-      wp <- wp %>% 
-        select(latitude, longitude) %>% 
-        mutate(`altitude(m)` = altitude,
-               `heading(deg)` = direction,
-               `curvesize(m)` = 0.2,
-               `rotationdir` = 0,
-               `gimbalmode`	= 0,
-               `gimbalpitchangle` =0,
-               `actiontype1` = -1,
-               `actionparam1` = 0,
-               `actiontype2` = -1,
-               `actionparam2` = 0,
-               `actiontype3` = -1,
-               `actionparam3` = 0,
-               `actiontype4` = -1,
-               `actionparam4` = 0,
-               `actiontype5` = -1,
-               `actionparam5` = 0,
-               `actiontype6` = -1,
-               `actionparam6` = 0,
-               `actiontype7` = -1,
-               `actionparam7` = 0,
-               `actiontype8` = -1,
-               `actionparam8` = 0,
-               `actiontype9` = -1,
-               `actionparam9` = 0,
-               `actiontype10` = -1,
-               `actionparam10` = 0,
-               `actiontype11` = -1,
-               `actionparam11` = 0,
-               `actiontype12` = -1,
-               `actionparam12` = 0,
-               `actiontype13` = -1,
-               `actionparam13` = 0,
-               `actiontype14` = -1,
-               `actionparam14` = 0, 
-               `actiontype15` = -1,
-               `actionparam15` = 0,
-               `distance` = distance,
-               `speed` = speed)
-      
-      wp
     })
     
     # draw table
@@ -190,13 +154,76 @@ shinyServer(function(input, output, session) {
     })
     
     
-    # Download excel file
+    # Download output file
     output$o_download_wp <- downloadHandler(
         filename = function() {
-            paste0(input$i_filename,'.csv')
+            switch(input$i_filetype
+                   , Litchi = paste0(input$i_filename,'.csv')
+                   , Ardupilot = paste0(input$i_filename,'.waypoints'))
         },
         content = function(file) {
-            write.csv(output_data(), file = file, row.names = FALSE)
+            wp <- output_data()
+            if (input$i_filetype == 'Litchi') {
+                wp1 <- wp %>% 
+                    select(latitude,
+                           longitude,
+                           `altitude(m)` = altitude,
+                           `heading(deg)` = heading) %>% 
+                    mutate(
+                           `curvesize(m)` = 0.2,
+                           `rotationdir` = 0,
+                           `gimbalmode`	= 0,
+                           `gimbalpitchangle` = 0,
+                           `actiontype1` = -1,
+                           `actionparam1` = 0,
+                           `actiontype2` = -1,
+                           `actionparam2` = 0,
+                           `actiontype3` = -1,
+                           `actionparam3` = 0,
+                           `actiontype4` = -1,
+                           `actionparam4` = 0,
+                           `actiontype5` = -1,
+                           `actionparam5` = 0,
+                           `actiontype6` = -1,
+                           `actionparam6` = 0,
+                           `actiontype7` = -1,
+                           `actionparam7` = 0,
+                           `actiontype8` = -1,
+                           `actionparam8` = 0,
+                           `actiontype9` = -1,
+                           `actionparam9` = 0,
+                           `actiontype10` = -1,
+                           `actionparam10` = 0,
+                           `actiontype11` = -1,
+                           `actionparam11` = 0,
+                           `actiontype12` = -1,
+                           `actionparam12` = 0,
+                           `actiontype13` = -1,
+                           `actionparam13` = 0,
+                           `actiontype14` = -1,
+                           `actionparam14` = 0, 
+                           `actiontype15` = -1,
+                           `actionparam15` = 0)
+                write.csv(wp1, file = file, row.names = FALSE)
+            } else if (input$i_filetype == 'Ardupilot') {
+                wp1 <- c('QGC WPL 110',
+                            '1	0	3	22	20.000000	0.000000	0.000000	0.000000	0.000000	0.000000	30.000000	1',
+                            '2	0	3	178	0.000000	5.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
+                )
+                wp2 <- data.frame(V0 = seq(3, length.out = nrow(wp))
+                                  , V1 =  '0	3	16	0.000000	0.000000	0.000000	0.000000'
+                                  , V2 = wp$latitude
+                                  , V3 = wp$longitude
+                                  , V4 = wp$altitude
+                                  , V5 = 1) %>% 
+                    apply(1, FUN = paste, collapse = '\t')
+                wp1 <- c(wp1, wp2
+                            , c('55	0	3	206	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
+                                , '56	0	3	20	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
+                                
+                            ))
+                writeLines(wp1, file)
+            }
         }
     )
     

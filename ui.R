@@ -161,7 +161,10 @@ body <- dashboardBody(
             , h5('Flight duration (min)')
             , textOutput('o_flight_duration')
             , textOutput('o_flight_duration_caution')
-            , textInput('i_filename', 'Filename without extension', 'litchi')
+            , selectInput('i_filetype', 'File type'
+                          , selected = 'Litchi'
+                          , choices = c('Litchi', 'Ardupilot'))
+            , textInput('i_filename', 'Filename without extension', 'waypoint')
             , downloadButton('o_download_wp', 'Download waypoints')
         )
         , tabItem(
