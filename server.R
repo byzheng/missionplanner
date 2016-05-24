@@ -205,7 +205,9 @@ shinyServer(function(input, output, session) {
                            `actiontype14` = -1,
                            `actionparam14` = 0, 
                            `actiontype15` = -1,
-                           `actionparam15` = 0)
+                           `actionparam15` = 0,
+                           `distance(m)` = wp$distance,
+                           `speed` = wp$speed)
                 write.csv(wp1, file = file, row.names = FALSE)
             } else if (input$i_filetype == 'Ardupilot') {
                 wp1 <- c('QGC WPL 110',
