@@ -72,7 +72,9 @@ shinyServer(function(input, output, session) {
                 , position = 'topleft') %>% 
             addScaleBar('bottomleft', options = scaleBarOptions(imperial = FALSE)) %>% 
             addControlGPS() %>% 
-            
+            addMeasure(position = 'bottomleft'
+                       , primaryAreaUnit = 'sqmeters'
+                       , primaryLengthUnit = 'meters') %>% 
             addSearchOSM(url ='https://nominatim.openstreetmap.org/search?format=json&q={s}',
                          position = 'topright') %>% 
             addLayersControl(
