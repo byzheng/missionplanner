@@ -84,10 +84,10 @@ ui_configuration <- function() {
         )
         , tabPanel(
             title = 'Field'
-            # ,  fileInput(
-            #     inputId = 'i_import_file'
-            #     , label = 'Import field'
-            # )
+            ,  fileInput(
+                inputId = 'i_import_file'
+                , label = 'Import key points'
+            )
             , radioButtons(
                 inputId = 'i_flight_mode'
                 , label = 'Flight mode'

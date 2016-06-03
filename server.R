@@ -3,7 +3,7 @@
 # * Copyright: AS IS
 
 
-options(digits = 10)
+options(digits = 15)
 library(shiny)
 library(dplyr)
 library(rgdal)
@@ -57,6 +57,7 @@ shinyServer(function(input, output, session) {
             output$o_flight_speed_caution <- renderText("Caution: over speed!")
     })
     
+   
     output$o_map <- renderLeaflet({
 
         map <- leaflet() %>%
@@ -79,7 +80,7 @@ shinyServer(function(input, output, session) {
                          position = 'topright') %>% 
             addLayersControl(
                 baseGroups = c('OSM', 'Satellite')
-                , overlayGroups = c('Field', 'Flight')
+                , overlayGroups = c('Field', 'Flight', 'Points')
                 , options = layersControlOptions(collapsed = FALSE)
             )
         geoloc <- input$ip_address
@@ -91,7 +92,23 @@ shinyServer(function(input, output, session) {
         }        
         map 
     })
-
+    
+    
+    # Upload points
+    observe({
+        in_file <- input$i_import_file
+        
+        if (is.null(in_file))
+            return(NULL)
+        points <- read.table(in_file$datapath, header = TRUE)
+        req(nrow(points) > 0)
+        updateTabItems(session, 'menu_tabs', 'm_field')
+        proxy <- leafletProxy('o_map')
+        proxy %>% 
+            addMarkers(lat = points$latitude, lng = points$longitude, group = 'Points') %>% 
+            setView(lat = mean(points$latitude), lng = mean(points$longitude), zoom = 15)
+    })
+    
     # Reactive for way points
     r_way_points <- reactive({
         req(input$o_map_draw_features)
