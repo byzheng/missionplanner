@@ -149,18 +149,16 @@ body <- dashboardBody(
         )
         , tabItem(
             tabName = 'm_table'
-            , tableOutput("grouping")
+            , tableOutput("o_summary_tbl")
         )
         , tabItem(
             tabName = 'm_summary'
-            , h5('Flight distance (m)')
-            , textOutput('o_flight_distance')
-            , h5('Flight speed (km/h)')
-            , textOutput('o_flight_speed')
-            , textOutput('o_flight_speed_caution')
-            , h5('Flight duration (min)')
-            , textOutput('o_flight_duration')
-            , textOutput('o_flight_duration_caution')
+            , fluidRow(
+                valueBoxOutput('o_infor_flight_speed')
+                , valueBoxOutput('o_infor_flight_distance')
+                , valueBoxOutput('o_infor_flight_duration')
+            )
+            
             , selectInput('i_filetype', 'File type'
                           , selected = 'Litchi'
                           , choices = c('Litchi', 'Ardupilot'))

@@ -4,6 +4,12 @@
 
 
 options(digits = 15)
+colour_value_map <- function(value, constrains) {
+    col <- c('blue', 'yellow', 'orange', 'red')
+    pos <- length(col) - which.min(rev(value <= constrains)) + 1
+    col[pos]
+}
+
 library(shiny)
 library(dplyr)
 library(rgdal)
@@ -52,9 +58,6 @@ shinyServer(function(input, output, session) {
           session
           , 'i_flight_speed'
           , value = res$speed.drone.km.h)
-        #output$o_flight_speed <- renderText(res$speed.drone.km.h)
-        if(res$speed.drone > input$i_maximum_flight_speed)
-            output$o_flight_speed_caution <- renderText("Caution: over speed!")
     })
     
    
@@ -101,7 +104,12 @@ shinyServer(function(input, output, session) {
         if (is.null(in_file))
             return(NULL)
         points <- read.table(in_file$datapath, header = TRUE)
+        
+        
         req(nrow(points) > 0)
+        req(points$latitude)
+        req(points$longitude)
+        
         updateTabItems(session, 'menu_tabs', 'm_field')
         proxy <- leafletProxy('o_map')
         proxy %>% 
@@ -125,50 +133,104 @@ shinyServer(function(input, output, session) {
         wp
     })
     
+    r_output_data_tbl <- reactive({
+        req(input$i_flight_height)
+        altitude <- input$i_flight_height
+        wp <- r_way_points()
+        wp <- as.data.frame(wp)
+        names(wp) <- c('longitude', 'latitude')
+        
+        # add the starting point
+        #wp <- rbind(wp, wp[1,])
+        
+        # calculate slope (added by hw)
+        res <- heading.distance.direction(wp)
+    })
     # Reactive for output data
     output_data <- reactive({
-      req(input$i_flight_height)
-      altitude <- input$i_flight_height
-      wp <- r_way_points()
-      wp <- as.data.frame(wp)
-      names(wp) <- c('longitude', 'latitude')
-      
-      # add the starting point
-      #wp <- rbind(wp, wp[1,])
-      
-      # calculate slope (added by hw)
-      res <- heading.distance.direction(wp)
-      distance <- res$distance
-      direction <- res$direction
-      if(input$i_heading_direction == 1)
+        altitude <- input$i_flight_height
+        
+        res <- r_output_data_tbl()
+        wp <- r_way_points()
+        wp <- as.data.frame(wp)
+        names(wp) <- c('longitude', 'latitude')
+        
+        distance <- res$distance
+        direction <- res$direction
+        if (input$i_heading_direction == 1)
         direction <- direction[1]
-      if(input$i_camera_angle == 'Portrait')
+        if (input$i_camera_angle == 'Portrait')
         direction <- direction - 90
-      direction[direction < 0] <- direction[direction < 0] + 360
-      
-      speed <- rep(input$i_flight_speed, length(distance))
-      #speed[length(speed)] <- 0
-      
-
-      # update information
-      total.distance <- sum(distance)
-      flight.duration <- total.distance / (input$i_flight_speed * 1000 / 60)
-      output$o_flight_speed <- renderText(input$i_flight_speed)
-      output$o_flight_distance <- renderText(total.distance)
-      output$o_flight_duration <- renderText(flight.duration)
-      if (flight.duration > input$i_battery_life * 0.7)
-          output$o_flight_duration_caution <- renderText("Caution: over duration!")
-      wp %>% 
+        direction[direction < 0] <- direction[direction < 0] + 360
+        
+        speed <- rep(input$i_flight_speed, length(distance))
+        #speed[length(speed)] <- 0
+        
+        
+        # update information
+        total.distance <- sum(distance)
+        flight.duration <- total.distance / (input$i_flight_speed * 1000 / 60)
+        
+        # if (flight.duration > input$i_battery_life * 0.7)
+        #   output$o_flight_duration_caution <- renderText("Caution: over duration!")
+        wp %>% 
           select(latitude, longitude) %>% 
           mutate(altitude = altitude,
                  heading = direction,
                  distance = distance,
                  speed = speed)
-      
+
+    })
+    
+    
+    # Output information box
+    output$o_infor_flight_speed <- renderValueBox({
+        i_flight_speed <- input$i_flight_speed
+        col <- colour_value_map(i_flight_speed, quantile(c(0, input$i_maximum_flight_speed)))
+        infoBox(
+            title = 'Speed (m/s)'
+            , value = i_flight_speed
+            , icon = shiny::icon('rocket')
+            , subtitle = paste('Maximum ', input$i_maximum_flight_speed, ' m/s')
+            , width = 6
+            , fill = TRUE
+            , color = col)
+        
+    })
+    output$o_infor_flight_distance <- renderValueBox({
+        distance <- round(sum(r_output_data_tbl()$distance), 0)
+        max_distance <- input$i_maximum_flight_speed * input$i_battery_life * 60
+        col <- colour_value_map(distance, quantile(c(0, max_distance)))
+        
+        infoBox(
+            title = 'Distance (m)'
+            , value = distance
+            , icon = shiny::icon('road', lib = 'glyphicon')
+            , width = 6
+            , fill = TRUE
+            , subtitle = paste('Maximum ', max_distance, ' m')
+            , color = col)
+        
+    })
+    
+    
+    output$o_infor_flight_duration <- renderValueBox({
+        distance <- r_output_data_tbl()$distance
+        flight_duration <- round(sum(distance) / (input$i_flight_speed * 1000 / 60), 1)
+        col <- colour_value_map(flight_duration, quantile(c(0, input$i_battery_life)))
+        
+        infoBox(
+            title = 'Duration (min)'
+            , value = flight_duration
+            , icon = shiny::icon('clock-o')
+            , width = 6
+            , fill = TRUE
+            , subtitle = paste('Maximum ', input$i_battery_life, ' min')
+            , color = col)
     })
     
     # draw table
-    output$grouping <- renderTable({
+    output$o_summary_tbl <- renderTable({
       output_data()
     })
     
