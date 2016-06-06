@@ -1,1 +1,9 @@
-name,img_sensor_x,img_sensor_y,focus_lengthInspire1X5,17.3,13,15Inspire1X3,6.17,4.55,2.88Phantom3,6.17,4.55,2.88Phantom4,6.17,4.55,2.88FX-4_35-NDVI-7,6.17,4.55,4.25SONY-ILCE-7R,35.9,24,35SONY DSC-RX100M3,13.2,8.8,???Inspire1X5-Olympus25mm,17.3,13,25
+name,img_sensor_x,img_sensor_y,focus_length
+Inspire1X5,17.3,13,15
+Inspire1X3,6.17,4.55,2.88
+Phantom3,6.17,4.55,2.88
+Phantom4,6.17,4.55,2.88
+FX-4_35-NDVI-7,6.17,4.55,4.25
+SONY-ILCE-7R,35.9,24,35
+SONY DSC-RX100M3,13.2,8.8,8.8
+Inspire1X5-Olympus25mm,17.3,13,25

@@ -4,8 +4,9 @@
 
 
 options(digits = 15)
-colour_value_map <- function(value, constrains) {
-    col <- c('blue', 'yellow', 'orange', 'red')
+colour_value_map <- function(value, constrains, reverse = FALSE) {
+    col <- c('green', 'blue', 'yellow', 'orange', 'red')
+    if (reverse) { col = rev(col)}
     pos <- length(col) - which.min(rev(value <= constrains)) + 1
     col[pos]
 }
@@ -64,7 +65,9 @@ shinyServer(function(input, output, session) {
     output$o_map <- renderLeaflet({
 
         map <- leaflet() %>%
-            addTiles(group = 'OSM') %>% 
+            addTiles(
+                group = 'OSM'
+                , options = tileOptions(maxZoom = 28, maxNativeZoom = 19)) %>% 
             addProviderTiles(
                 'Esri.WorldImagery', group = 'Satellite'
                 , options = tileOptions(maxZoom = 28, maxNativeZoom = 17)) %>% 
@@ -184,7 +187,7 @@ shinyServer(function(input, output, session) {
     
     
     # Output information box
-    output$o_infor_flight_speed <- renderValueBox({
+    output$o_infor_flight_speed <- renderInfoBox({
         i_flight_speed <- input$i_flight_speed
         col <- colour_value_map(i_flight_speed, quantile(c(0, input$i_maximum_flight_speed)))
         infoBox(
@@ -197,7 +200,7 @@ shinyServer(function(input, output, session) {
             , color = col)
         
     })
-    output$o_infor_flight_distance <- renderValueBox({
+    output$o_infor_flight_distance <- renderInfoBox({
         distance <- round(sum(r_output_data_tbl()$distance), 0)
         max_distance <- input$i_maximum_flight_speed * input$i_battery_life * 60
         col <- colour_value_map(distance, quantile(c(0, max_distance)))
@@ -214,9 +217,9 @@ shinyServer(function(input, output, session) {
     })
     
     
-    output$o_infor_flight_duration <- renderValueBox({
+    output$o_infor_flight_duration <- renderInfoBox({
         distance <- r_output_data_tbl()$distance
-        flight_duration <- round(sum(distance) / (input$i_flight_speed * 1000 / 60), 1)
+        flight_duration <- round(sum(distance) / (input$i_flight_speed * 60), 1)
         col <- colour_value_map(flight_duration, quantile(c(0, input$i_battery_life)))
         
         infoBox(
@@ -228,6 +231,56 @@ shinyServer(function(input, output, session) {
             , subtitle = paste('Maximum ', input$i_battery_life, ' min')
             , color = col)
     })
+    
+    r_overlap_img <- reactive({
+        altitude <- input$i_flight_height
+        imgsensor_x <- input$i_img_sensor_x
+        imgsensor_y <- input$i_img_sensor_y
+        focus_length <- input$i_focus_length
+        shutter_interval <- input$i_shutter_interval
+        flight_speed <- input$i_flight_speed
+        grid_offset <- input$i_grid_offset
+        
+        range_x <- (altitude * imgsensor_x) / focus_length
+        range_y <- (altitude * imgsensor_y) / focus_length
+        if (input$i_camera_direction == 'Portrait') {
+            a <- range_x
+            range_x <- range_y
+            range_y <- a
+        }
+        
+        overlap_x <- 100 - ((shutter_interval * flight_speed) / range_x) * 100
+        overlap_y <- 100 - grid_offset / range_y * 100
+        list(x = overlap_x, y = overlap_y)
+    })
+    
+    output$o_infor_overlap_x <- renderInfoBox({
+        overlap <- r_overlap_img()
+        col <- colour_value_map(overlap$x, quantile(c(50, 90)), reverse = TRUE)
+        
+        infoBox(
+            title = 'Overlap in X (%)'
+            , value = round(overlap$x)
+            , icon = shiny::icon('file-image-o')
+            , width = 6
+            , fill = TRUE
+            , color = col)
+    })
+    
+    
+    output$o_infor_overlap_y <- renderInfoBox({
+        overlap <- r_overlap_img()
+        col <- colour_value_map(overlap$y, quantile(c(50, 90)), reverse = TRUE)
+        
+        infoBox(
+            title = 'Overlap in Y (%)'
+            , value = round(overlap$y)
+            , icon = shiny::icon('file-image-o')
+            , width = 6
+            , fill = TRUE
+            , color = col)
+    })
+    
     
     # draw table
     output$o_summary_tbl <- renderTable({

@@ -10,15 +10,15 @@ ui_configuration <- function() {
     tabsetPanel(
         tabPanel(
             title = 'UAV'
-            , sliderInput(
+            , numericInput(
                 inputId = 'i_flight_height'
                 , label = 'Flight height (m)' 
                 , value = 20, min = 5, max = 200, step = 1)
-            , sliderInput(
+            , numericInput(
                 inputId = 'i_maximum_flight_speed'
                 , label = 'Maximum flight speed (m/s)'
                 , value = 10, min = 1, max = 30, step = 1)
-            , sliderInput(
+            , numericInput(
                 inputId = 'i_battery_life'
                 , label = 'Battery life (min)'
                 , value = 15, min = 5, max = 60, step = 1 
@@ -54,7 +54,7 @@ ui_configuration <- function() {
                 , label = 'Camara'
                 , choices  = cameras$name
                 , selected = cameras$name[1])
-            , sliderInput(
+            , numericInput(
                 inputId = 'i_shutter_interval'
                 , label = 'Shutter Interval (s)'
                 , value = 2, min = 1, max = 60, step = 1)
@@ -154,11 +154,14 @@ body <- dashboardBody(
         , tabItem(
             tabName = 'm_summary'
             , fluidRow(
-                valueBoxOutput('o_infor_flight_speed')
-                , valueBoxOutput('o_infor_flight_distance')
-                , valueBoxOutput('o_infor_flight_duration')
+                infoBoxOutput('o_infor_flight_speed')
+                , infoBoxOutput('o_infor_flight_distance')
+                , infoBoxOutput('o_infor_flight_duration')
             )
-            
+            , fluidRow(
+                infoBoxOutput('o_infor_overlap_x')
+                , infoBoxOutput('o_infor_overlap_y')
+            )
             , selectInput('i_filetype', 'File type'
                           , selected = 'Litchi'
                           , choices = c('Litchi', 'Ardupilot'))
