@@ -86,7 +86,7 @@ ui_configuration <- function() {
             title = 'Field'
             ,  fileInput(
                 inputId = 'i_import_file'
-                , label = 'Import key points'
+                , label = 'Import key points (any text file with two columns (latitude and longitude))'
             )
             , radioButtons(
                 inputId = 'i_flight_mode'
