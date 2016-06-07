@@ -37,6 +37,15 @@ shinyServer(function(input, output, session) {
             session
             , 'i_focus_length'
             , value = sel_camera$focus_length)
+        updateNumericInput(
+            session
+            , 'i_img_res_x'
+            , value = sel_camera$resolution_x)
+        updateNumericInput(
+            session
+            , 'i_img_res_y'
+            , value = sel_camera$resolution_y)
+        
         img_sensor_x <- input$i_img_sensor_x
         img_sensor_y <- input$i_img_sensor_y
         if(input$i_camera_angle == 'Portrait') {
@@ -232,14 +241,11 @@ shinyServer(function(input, output, session) {
             , color = col)
     })
     
-    r_overlap_img <- reactive({
+    r_range_img <- reactive({
         altitude <- input$i_flight_height
         imgsensor_x <- input$i_img_sensor_x
         imgsensor_y <- input$i_img_sensor_y
         focus_length <- input$i_focus_length
-        shutter_interval <- input$i_shutter_interval
-        flight_speed <- input$i_flight_speed
-        grid_offset <- input$i_grid_offset
         
         range_x <- (altitude * imgsensor_x) / focus_length
         range_y <- (altitude * imgsensor_y) / focus_length
@@ -248,9 +254,16 @@ shinyServer(function(input, output, session) {
             range_x <- range_y
             range_y <- a
         }
+        list(x = range_x, y = range_y)
+    })
+    r_overlap_img <- reactive({
+        rng <- r_range_img()
+        shutter_interval <- input$i_shutter_interval
+        flight_speed <- input$i_flight_speed
         
-        overlap_x <- 100 - ((shutter_interval * flight_speed) / range_x) * 100
-        overlap_y <- 100 - grid_offset / range_y * 100
+        grid_offset <- input$i_grid_offset
+        overlap_x <- 100 - ((shutter_interval * flight_speed) / rng$x) * 100
+        overlap_y <- 100 - grid_offset / rng$y * 100
         list(x = overlap_x, y = overlap_y)
     })
     
@@ -280,6 +293,33 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = col)
     })
+    
+    
+    output$o_infor_gsd <- renderInfoBox({
+        
+        req(input$i_img_res_x)
+        req(input$i_img_res_y)
+        i_img_res_x <- input$i_img_res_x
+        i_img_res_y <- input$i_img_res_y
+        
+        if (input$i_camera_direction == 'Portrait') {
+            a <- i_img_res_x
+            i_img_res_x <- i_img_res_y
+            i_img_res_y <- a
+        }
+        overlap <- r_range_img()
+        gsd <- (overlap$x / i_img_res_x + overlap$y / i_img_res_y) / 2 * 1000
+        
+        infoBox(
+            title = 'Ground sampling distance (mm)'
+            , value = round(gsd, 2)
+            , icon = shiny::icon('arrows-h')
+            , width = 6
+            , fill = TRUE
+            , color = 'blue')
+    })
+    
+    
     
     
     # draw table

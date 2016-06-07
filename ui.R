@@ -70,6 +70,15 @@ ui_configuration <- function() {
                 inputId = 'i_focus_length'
                 , label = 'Focus Length (mm)'
                 , value = 15, min = 1, max = 100, step = 0.1)
+            , numericInput(
+                inputId = 'i_img_res_x'
+                , label = 'Image Resolution X (pixel)'
+                , value = 2000, min = 100, max = 8000, step = 100)
+            , numericInput(
+                inputId = 'i_img_res_y'
+                , label = 'Image Sensor Y (pixel)'
+                , value = 2000, min = 100, max = 8000, step = 100)
+            
             , selectInput(
                 inputId = 'i_camera_direction'
                 , label = 'Camera Orientation'
@@ -161,6 +170,7 @@ body <- dashboardBody(
             , fluidRow(
                 infoBoxOutput('o_infor_overlap_x')
                 , infoBoxOutput('o_infor_overlap_y')
+                , infoBoxOutput('o_infor_gsd')
             )
             , selectInput('i_filetype', 'File type'
                           , selected = 'Litchi'
