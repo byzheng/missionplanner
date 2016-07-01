@@ -18,7 +18,14 @@ library(leaflet)
 library(leafletplugins)
 source('global.R')
 shinyServer(function(input, output, session) {
-  
+    # Reactive for speed
+    r_speed <- reactive({
+        speed <- input$i_flight_speed
+        if (input$i_speed_unit == 'm/s') {
+            speed <- speed * 3.6
+        }
+        speed
+    })
     # Observe for change camera
     observe({
         req(input$i_camera_list)
@@ -175,7 +182,7 @@ shinyServer(function(input, output, session) {
         direction <- direction - 90
         direction[direction < 0] <- direction[direction < 0] + 360
         
-        speed <- rep(input$i_flight_speed, length(distance))
+        speed <- rep(r_speed(), length(distance))
         #speed[length(speed)] <- 0
         
         
@@ -197,7 +204,7 @@ shinyServer(function(input, output, session) {
     
     # Output information box
     output$o_infor_flight_speed <- renderInfoBox({
-        i_flight_speed <- input$i_flight_speed
+        i_flight_speed <- r_speed() / 3.6
         col <- colour_value_map(i_flight_speed, quantile(c(0, input$i_maximum_flight_speed)))
         infoBox(
             title = 'Speed (m/s)'
@@ -228,7 +235,7 @@ shinyServer(function(input, output, session) {
     
     output$o_infor_flight_duration <- renderInfoBox({
         distance <- r_output_data_tbl()$distance
-        flight_duration <- round(sum(distance) / (input$i_flight_speed * 60), 1)
+        flight_duration <- round(sum(distance) / (r_speed() / 3.6 * 60), 1)
         col <- colour_value_map(flight_duration, quantile(c(0, input$i_battery_life)))
         
         infoBox(
@@ -259,13 +266,38 @@ shinyServer(function(input, output, session) {
     r_overlap_img <- reactive({
         rng <- r_range_img()
         shutter_interval <- input$i_shutter_interval
-        flight_speed <- input$i_flight_speed
+        flight_speed <- r_speed() / 3.6
         
         grid_offset <- input$i_grid_offset
         overlap_x <- 100 - ((shutter_interval * flight_speed) / rng$x) * 100
         overlap_y <- 100 - grid_offset / rng$y * 100
         list(x = overlap_x, y = overlap_y)
     })
+    
+    output$o_infor_range_x <- renderInfoBox({
+        range <- r_range_img()
+        
+        infoBox(
+            title = 'Range in X (m)'
+            , value = round(range$x)
+            , icon = shiny::icon('file-image-o')
+            , width = 6
+            , fill = TRUE
+            , color = 'blue')
+    })
+    
+    output$o_infor_range_y <- renderInfoBox({
+        range <- r_range_img()
+        
+        infoBox(
+            title = 'Range in Y (m)'
+            , value = round(range$y)
+            , icon = shiny::icon('file-image-o')
+            , width = 6
+            , fill = TRUE
+            , color = 'blue')
+    })
+    
     
     output$o_infor_overlap_x <- renderInfoBox({
         overlap <- r_overlap_img()
@@ -320,6 +352,16 @@ shinyServer(function(input, output, session) {
     })
     
     
+    output$o_flight_height <- renderInfoBox({
+        
+        infoBox(
+            title = 'Flight height (m)'
+            , value = input$i_flight_height
+            , icon = shiny::icon('arrows-v')
+            , width = 6
+            , fill = TRUE
+            , color = 'blue')
+    })
     
     
     # draw table
@@ -383,9 +425,12 @@ shinyServer(function(input, output, session) {
                 write.csv(wp1, file = file, row.names = FALSE)
             } else if (input$i_filetype == 'Ardupilot') {
                 wp1 <- c('QGC WPL 110',
-                            '1	0	3	22	20.000000	0.000000	0.000000	0.000000	0.000000	0.000000	30.000000	1',
-                            '2	0	3	178	0.000000	5.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
-                )
+                            '1	0	3	22	20.000000	0.000000	0.000000	0.000000	0.000000	0.000000	30.000000	1'
+                                )
+                wp1 <- c(wp1, sprintf(
+                    '2	0	3	178	0.000000	%f	0.000000	0.000000	0.000000	0.000000	0.000000	1'
+                    , wp$speed[1]
+                ))
                 wp2 <- data.frame(V0 = seq(3, length.out = nrow(wp))
                                   , V1 =  '0	3	16	0.000000	0.000000	0.000000	0.000000'
                                   , V2 = wp$latitude
@@ -393,6 +438,7 @@ shinyServer(function(input, output, session) {
                                   , V4 = wp$altitude
                                   , V5 = 1) %>% 
                     apply(1, FUN = paste, collapse = '\t')
+                wp2[1] <- gsub('16	0.000000', '16	3.000000',  wp2[1]) 
                 wp1 <- c(wp1, wp2
                             , c('55	0	3	206	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
                                 , '56	0	3	20	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'

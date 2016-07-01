@@ -14,14 +14,21 @@ ui_configuration <- function() {
                 inputId = 'i_flight_height'
                 , label = 'Flight height (m)' 
                 , value = 20, min = 5, max = 200, step = 1)
+            
             , numericInput(
-                inputId = 'i_maximum_flight_speed'
-                , label = 'Maximum flight speed (m/s)'
-                , value = 10, min = 1, max = 30, step = 1)
-            , numericInput(
-                inputId = 'i_battery_life'
-                , label = 'Battery life (min)'
-                , value = 15, min = 5, max = 60, step = 1 
+                inputId = 'i_flight_speed'
+                , label = 'Flight speed'
+                , value = 10
+                , min = 1
+                , max = 30
+                #, step = 1
+            )
+            , radioButtons(
+                inputId = 'i_speed_unit'
+                , label = 'Unit'
+                , choices = c('km/h', 'm/s')
+                , selected = 'm/s'
+                , inline = TRUE
             )
             , radioButtons(
               inputId = 'i_heading_direction'
@@ -39,12 +46,13 @@ ui_configuration <- function() {
                 #, step = 1
             )
             , numericInput(
-              inputId = 'i_flight_speed'
-              , label = 'Flight speed (km/h)'
-              , value = 10
-              , min = 1
-              , max = 30
-              #, step = 1
+                inputId = 'i_maximum_flight_speed'
+                , label = 'Maximum flight speed (m/s)'
+                , value = 10, min = 1, max = 30, step = 1)
+            , numericInput(
+                inputId = 'i_battery_life'
+                , label = 'Battery life (min)'
+                , value = 15, min = 5, max = 60, step = 1 
             )
         )
         , tabPanel(
@@ -171,6 +179,11 @@ body <- dashboardBody(
                 infoBoxOutput('o_infor_overlap_x')
                 , infoBoxOutput('o_infor_overlap_y')
                 , infoBoxOutput('o_infor_gsd')
+            )
+            , fluidRow(
+                infoBoxOutput('o_infor_range_x')
+                , infoBoxOutput('o_infor_range_y')
+                , infoBoxOutput('o_flight_height')
             )
             , selectInput('i_filetype', 'File type'
                           , selected = 'Litchi'
