@@ -26,10 +26,22 @@ shinyServer(function(input, output, session) {
         }
         speed
     })
+    # Observe for unit
+    observe({
+        req(input$i_speed_unit)
+        new_speed <- isolate(input$i_flight_speed)
+        if (input$i_speed_unit == 'km/h') {
+            new_speed <- new_speed * 3.6
+        } else {
+            new_speed <- new_speed / 3.6
+        }
+
+        updateNumericInput(session, 'i_flight_speed', value = new_speed)
+    })
     # Observe for change camera
     observe({
         req(input$i_camera_list)
-        sel_camera <- cameras %>% 
+        sel_camera <- cameras %>%
             filter(name == input$i_camera_list)
         req(nrow(sel_camera) > 0)
         updateNumericInput(
@@ -52,14 +64,14 @@ shinyServer(function(input, output, session) {
             session
             , 'i_img_res_y'
             , value = sel_camera$resolution_y)
-        
+
         img_sensor_x <- input$i_img_sensor_x
         img_sensor_y <- input$i_img_sensor_y
-        if(input$i_camera_angle == 'Portrait') {
+        if(input$i_camera_direction == 'Landscape') {
             img_sensor_x <- input$i_img_sensor_y
             img_sensor_y <- input$i_img_sensor_x
         }
-        res <- calc.settings(input$i_flight_height, 
+        res <- calc.settings(input$i_flight_height,
                       input$i_shutter_interval,
                       input$i_overlap_x / 100,
                       input$i_overlap_y / 100,
@@ -71,35 +83,39 @@ shinyServer(function(input, output, session) {
             session
             , 'i_grid_offset'
             , value = res$turn.dis)
+        isolate({
+            speed <- ifelse(input$i_speed_unit == 'm/s',
+               res$speed.drone.km.h / 3.6, res$speed.drone.km.h)
+        })
         updateNumericInput(
           session
           , 'i_flight_speed'
-          , value = res$speed.drone.km.h)
+          , value = speed)
     })
-    
-   
+
+
     output$o_map <- renderLeaflet({
 
         map <- leaflet() %>%
             addTiles(
                 group = 'OSM'
-                , options = tileOptions(maxZoom = 28, maxNativeZoom = 19)) %>% 
+                , options = tileOptions(maxZoom = 28, maxNativeZoom = 19)) %>%
             addProviderTiles(
                 'Esri.WorldImagery', group = 'Satellite'
-                , options = tileOptions(maxZoom = 28, maxNativeZoom = 17)) %>% 
+                , options = tileOptions(maxZoom = 28, maxNativeZoom = 17)) %>%
             addDrawToolbar(
                 layerID = 'draw', group = 'Field'
                 , polyline = FALSE, polygon = TRUE
                 , rectangle = FALSE, circle = FALSE
                 , marker = FALSE, edit = TRUE, remove = TRUE
-                , position = 'topleft') %>% 
-            addScaleBar('bottomleft', options = scaleBarOptions(imperial = FALSE)) %>% 
-            addControlGPS() %>% 
+                , position = 'topleft') %>%
+            addScaleBar('bottomleft', options = scaleBarOptions(imperial = FALSE)) %>%
+            addControlGPS() %>%
             addMeasure(position = 'bottomleft'
                        , primaryAreaUnit = 'sqmeters'
-                       , primaryLengthUnit = 'meters') %>% 
+                       , primaryLengthUnit = 'meters') %>%
             addSearchOSM(url ='https://nominatim.openstreetmap.org/search?format=json&q={s}',
-                         position = 'topright') %>% 
+                         position = 'topright') %>%
             addLayersControl(
                 baseGroups = c('OSM', 'Satellite')
                 , overlayGroups = c('Field', 'Flight', 'Points')
@@ -111,31 +127,31 @@ shinyServer(function(input, output, session) {
                 setView(lng = as.numeric(geoloc$longitude),
                         lat = as.numeric(geoloc$latitude),
                         zoom = 16)
-        }        
-        map 
+        }
+        map
     })
-    
-    
+
+
     # Upload points
     observe({
         in_file <- input$i_import_file
-        
+
         if (is.null(in_file))
             return(NULL)
         points <- read.table(in_file$datapath, header = TRUE)
-        
-        
+
+
         req(nrow(points) > 0)
         req(points$latitude)
         req(points$longitude)
-        
+
         updateTabItems(session, 'menu_tabs', 'm_field')
         proxy <- leafletProxy('o_map')
-        proxy %>% 
-            addMarkers(lat = points$latitude, lng = points$longitude, group = 'Points') %>% 
+        proxy %>%
+            addMarkers(lat = points$latitude, lng = points$longitude, group = 'Points') %>%
             setView(lat = mean(points$latitude), lng = mean(points$longitude), zoom = 15)
     })
-    
+
     # Reactive for way points
     r_way_points <- reactive({
         req(input$o_map_draw_features)
@@ -144,64 +160,64 @@ shinyServer(function(input, output, session) {
         ply <- input$o_map_draw_features
         req(length(ply$features) > 0)
         # save(list = ls(), file = 'tmp.RData')
-        
+
         wp <- way_points(ply, offset = offset)
 
         wp <- spTransform(wp,  CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'))
-        
+
         wp
     })
-    
+
     r_output_data_tbl <- reactive({
         req(input$i_flight_height)
         altitude <- input$i_flight_height
         wp <- r_way_points()
         wp <- as.data.frame(wp)
         names(wp) <- c('longitude', 'latitude')
-        
+
         # add the starting point
         #wp <- rbind(wp, wp[1,])
-        
+
         # calculate slope (added by hw)
         res <- heading.distance.direction(wp)
     })
     # Reactive for output data
     output_data <- reactive({
         altitude <- input$i_flight_height
-        
+
         res <- r_output_data_tbl()
         wp <- r_way_points()
         wp <- as.data.frame(wp)
         names(wp) <- c('longitude', 'latitude')
-        
+
         distance <- res$distance
         direction <- res$direction
         if (input$i_heading_direction == 1)
         direction <- direction[1]
-        if (input$i_camera_angle == 'Portrait')
+        if (input$i_camera_direction == 'Landscape')
         direction <- direction - 90
         direction[direction < 0] <- direction[direction < 0] + 360
-        
+
         speed <- rep(r_speed(), length(distance))
         #speed[length(speed)] <- 0
-        
-        
+
+
         # update information
         total.distance <- sum(distance)
         flight.duration <- total.distance / (input$i_flight_speed * 1000 / 60)
-        
+
         # if (flight.duration > input$i_battery_life * 0.7)
         #   output$o_flight_duration_caution <- renderText("Caution: over duration!")
-        wp %>% 
-          select(latitude, longitude) %>% 
+        wp %>%
+          select(latitude, longitude) %>%
           mutate(altitude = altitude,
                  heading = direction,
                  distance = distance,
                  speed = speed)
 
     })
-    
-    
+
+
     # Output information box
     output$o_infor_flight_speed <- renderInfoBox({
         i_flight_speed <- r_speed() / 3.6
@@ -214,13 +230,13 @@ shinyServer(function(input, output, session) {
             , width = 6
             , fill = TRUE
             , color = col)
-        
+
     })
     output$o_infor_flight_distance <- renderInfoBox({
         distance <- round(sum(r_output_data_tbl()$distance), 0)
         max_distance <- input$i_maximum_flight_speed * input$i_battery_life * 60
         col <- colour_value_map(distance, quantile(c(0, max_distance)))
-        
+
         infoBox(
             title = 'Distance (m)'
             , value = distance
@@ -229,15 +245,15 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , subtitle = paste('Maximum ', max_distance, ' m')
             , color = col)
-        
+
     })
-    
-    
+
+
     output$o_infor_flight_duration <- renderInfoBox({
         distance <- r_output_data_tbl()$distance
         flight_duration <- round(sum(distance) / (r_speed() / 3.6 * 60), 1)
         col <- colour_value_map(flight_duration, quantile(c(0, input$i_battery_life)))
-        
+
         infoBox(
             title = 'Duration (min)'
             , value = flight_duration
@@ -247,16 +263,16 @@ shinyServer(function(input, output, session) {
             , subtitle = paste('Maximum ', input$i_battery_life, ' min')
             , color = col)
     })
-    
+
     r_range_img <- reactive({
         altitude <- input$i_flight_height
         imgsensor_x <- input$i_img_sensor_x
         imgsensor_y <- input$i_img_sensor_y
         focus_length <- input$i_focus_length
-        
+
         range_x <- (altitude * imgsensor_x) / focus_length
         range_y <- (altitude * imgsensor_y) / focus_length
-        if (input$i_camera_direction == 'Portrait') {
+        if (input$i_camera_direction == 'Landscape') {
             a <- range_x
             range_x <- range_y
             range_y <- a
@@ -267,16 +283,16 @@ shinyServer(function(input, output, session) {
         rng <- r_range_img()
         shutter_interval <- input$i_shutter_interval
         flight_speed <- r_speed() / 3.6
-        
+
         grid_offset <- input$i_grid_offset
         overlap_x <- 100 - ((shutter_interval * flight_speed) / rng$x) * 100
         overlap_y <- 100 - grid_offset / rng$y * 100
         list(x = overlap_x, y = overlap_y)
     })
-    
+
     output$o_infor_range_x <- renderInfoBox({
         range <- r_range_img()
-        
+
         infoBox(
             title = 'Range in X (m)'
             , value = round(range$x)
@@ -285,10 +301,10 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = 'blue')
     })
-    
+
     output$o_infor_range_y <- renderInfoBox({
         range <- r_range_img()
-        
+
         infoBox(
             title = 'Range in Y (m)'
             , value = round(range$y)
@@ -297,12 +313,12 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = 'blue')
     })
-    
-    
+
+
     output$o_infor_overlap_x <- renderInfoBox({
         overlap <- r_overlap_img()
         col <- colour_value_map(overlap$x, quantile(c(50, 90)), reverse = TRUE)
-        
+
         infoBox(
             title = 'Overlap in X (%)'
             , value = round(overlap$x)
@@ -311,12 +327,12 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = col)
     })
-    
-    
+
+
     output$o_infor_overlap_y <- renderInfoBox({
         overlap <- r_overlap_img()
         col <- colour_value_map(overlap$y, quantile(c(50, 90)), reverse = TRUE)
-        
+
         infoBox(
             title = 'Overlap in Y (%)'
             , value = round(overlap$y)
@@ -325,23 +341,23 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = col)
     })
-    
-    
+
+
     output$o_infor_gsd <- renderInfoBox({
-        
+
         req(input$i_img_res_x)
         req(input$i_img_res_y)
         i_img_res_x <- input$i_img_res_x
         i_img_res_y <- input$i_img_res_y
-        
-        if (input$i_camera_direction == 'Portrait') {
+
+        if (input$i_camera_direction == 'Landscape') {
             a <- i_img_res_x
             i_img_res_x <- i_img_res_y
             i_img_res_y <- a
         }
         overlap <- r_range_img()
         gsd <- (overlap$x / i_img_res_x + overlap$y / i_img_res_y) / 2 * 1000
-        
+
         infoBox(
             title = 'Ground sampling distance (mm)'
             , value = round(gsd, 2)
@@ -350,10 +366,10 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = 'blue')
     })
-    
-    
+
+
     output$o_flight_height <- renderInfoBox({
-        
+
         infoBox(
             title = 'Flight height (m)'
             , value = input$i_flight_height
@@ -362,14 +378,14 @@ shinyServer(function(input, output, session) {
             , fill = TRUE
             , color = 'blue')
     })
-    
-    
+
+
     # draw table
     output$o_summary_tbl <- renderTable({
       output_data()
     })
-    
-    
+
+
     # Download output file
     output$o_download_wp <- downloadHandler(
         filename = function() {
@@ -380,11 +396,11 @@ shinyServer(function(input, output, session) {
         content = function(file) {
             wp <- output_data()
             if (input$i_filetype == 'Litchi') {
-                wp1 <- wp %>% 
+                wp1 <- wp %>%
                     select(latitude,
                            longitude,
                            `altitude(m)` = altitude,
-                           `heading(deg)` = heading) %>% 
+                           `heading(deg)` = heading) %>%
                     mutate(
                            `curvesize(m)` = 0.2,
                            `rotationdir` = 0,
@@ -417,7 +433,7 @@ shinyServer(function(input, output, session) {
                            `actiontype13` = -1,
                            `actionparam13` = 0,
                            `actiontype14` = -1,
-                           `actionparam14` = 0, 
+                           `actionparam14` = 0,
                            `actiontype15` = -1,
                            `actionparam15` = 0,
                            `distance(m)` = wp$distance,
@@ -436,39 +452,39 @@ shinyServer(function(input, output, session) {
                                   , V2 = wp$latitude
                                   , V3 = wp$longitude
                                   , V4 = wp$altitude
-                                  , V5 = 1) %>% 
+                                  , V5 = 1) %>%
                     apply(1, FUN = paste, collapse = '\t')
-                wp2[1] <- gsub('16	0.000000', '16	3.000000',  wp2[1]) 
+                wp2[1] <- gsub('16	0.000000', '16	3.000000',  wp2[1])
                 wp1 <- c(wp1, wp2
                             , c('55	0	3	206	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
                                 , '56	0	3	20	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1'
-                                
+
                             ))
                 writeLines(wp1, file)
             }
         }
     )
-    
-    # Draw a polygon 
+
+    # Draw a polygon
     observe({
         wp <- r_way_points()
         fly_lines <- SpatialLines(list(Lines(list(Line(wp)), ID = 1)),
                                   proj4string = wp@proj4string)
-        
+
         proxy <- leafletProxy('o_map')
         proxy %>%
             clearPopups() %>%
-            clearGroup('Flight') %>% 
+            clearGroup('Flight') %>%
             addPolylines(data = fly_lines, group = 'Flight')
     })
-    
+
     observe({
         req(input$o_map_draw_editing)
         leafletProxy('o_map') %>%
             clearPopups() %>%
             clearGroup('Flight')
     })
-    
+
     observe({
         req(input$o_map_draw_deleting)
         leafletProxy('o_map') %>%

@@ -18,7 +18,7 @@ ui_configuration <- function() {
             , numericInput(
                 inputId = 'i_flight_speed'
                 , label = 'Flight speed'
-                , value = 10
+                , value = 36
                 , min = 1
                 , max = 30
                 #, step = 1
@@ -26,7 +26,7 @@ ui_configuration <- function() {
             , radioButtons(
                 inputId = 'i_speed_unit'
                 , label = 'Unit'
-                , choices = c('km/h', 'm/s')
+                , choices = c('m/s', 'km/h')
                 , selected = 'm/s'
                 , inline = TRUE
             )
