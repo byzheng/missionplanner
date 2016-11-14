@@ -194,7 +194,7 @@ shinyServer(function(input, output, session) {
         direction <- res$direction
         if (input$i_heading_direction == 1)
         direction <- direction[1]
-        if (input$i_camera_direction == 'Landscape')
+        if (input$i_camera_direction == 'Portrait')
         direction <- direction - 90
         direction[direction < 0] <- direction[direction < 0] + 360
 

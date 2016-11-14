@@ -2,7 +2,7 @@ name,img_sensor_x,img_sensor_y,focus_length,resolution_x,resolution_y
 Inspire1X5,17.3,13,15,4608,3456
 Inspire1X3,6.17,4.55,2.88,4000,3000
 Phantom3,6.17,4.55,2.88,,
-Phantom4,6.17,4.55,2.88,,
+Phantom4,6.17,4.55,2.88,4000,3000
 FX-4_35-NDVI-7,6.17,4.55,4.25,,
 SONY-ILCE-7R,35.9,24,35,7360,4912
 SONY DSC-RX100M3,13.2,8.8,8.8,5472,3648
