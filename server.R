@@ -3,6 +3,10 @@
 # * Copyright: AS IS
 
 
+
+
+
+# Show more digits in the outputs for high accuracy
 options(digits = 15)
 colour_value_map <- function(value, constrains, reverse = FALSE) {
     col <- c('green', 'blue', 'yellow', 'orange', 'red')
