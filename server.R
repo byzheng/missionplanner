@@ -15,6 +15,7 @@ colour_value_map <- function(value, constrains, reverse = FALSE) {
     col[pos]
 }
 
+library(RCurl)
 library(shiny)
 library(dplyr)
 library(rgdal)
@@ -22,6 +23,19 @@ library(leaflet)
 library(leaflet.extras)
 source('global.R')
 shinyServer(function(input, output, session) {
+    # Reactive for camera
+    r_camera <- reactive({
+        x <- getURL("https://raw.githubusercontent.com/byzheng/missionplanner/master/camera.csv")
+        y <- read.csv(text = x)
+        y
+    })
+    observe({
+        cameras <- r_camera()
+        updateSelectInput(
+            session, 'i_camera_list',
+            choices = cameras$name, 
+            selected = cameras$name[1])
+    })
     # Reactive for speed
     r_speed <- reactive({
         speed <- input$i_flight_speed
@@ -45,6 +59,7 @@ shinyServer(function(input, output, session) {
     # Observe for change camera
     observe({
         req(input$i_camera_list)
+        cameras <- r_camera()
         sel_camera <- cameras %>%
             filter(name == input$i_camera_list)
         req(nrow(sel_camera) > 0)

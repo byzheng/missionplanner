@@ -62,8 +62,8 @@ ui_configuration <- function() {
             , selectInput(
                 inputId = 'i_camera_list'
                 , label = 'Camara'
-                , choices  = cameras$name
-                , selected = cameras$name[1])
+                , choices  = NULL
+                , selected = NULL)
             , fluidRow(
                 column(width = 6, numericInput(
                 inputId = 'i_shutter_interval'

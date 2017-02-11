@@ -3,7 +3,7 @@
 # * Copyright: AS IS
 
 library(geosphere)
-cameras <- read.csv('camera.csv', as.is = TRUE)
+# cameras <- read.csv('camera.csv', as.is = TRUE)
 
 utm_zone <- function(lng, lat) {
     ZoneNumber <- floor((lng + 180)/6) + 1;
